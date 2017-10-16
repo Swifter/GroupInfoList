@@ -1,0 +1,163 @@
+﻿<UserControl
+    x:Class="GroupList.GroupList.GroupedListView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:GroupList.GroupList"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:data="using:GroupList.Model"
+    xmlns:wuxdata="using:Windows.UI.Xaml.Data"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <!-- Use a collection view source for content that presents itself as a list of items that can be grouped or sorted.  
+             Otherwise, you can use x:Bind directly on the ListView's item source to for further optimization. Please see the
+             AppUIBasics sample for an example of how to do this.
+             https://docs.microsoft.com/en-us/uwp/api/Windows.UI.Xaml.Data.CollectionViewSource  -->
+        <CollectionViewSource x:Name="ContactsCVS"  IsSourceGrouped="True" />
+
+        <!-- This style is used for a letter Group that has one or more Contact members by the ZoomedOutTemplate data template below.-->
+        <Style TargetType="TextBlock" x:Key="TileHeaderTextStyle">
+            <Setter Property="FontSize" Value="48" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Bold"/>
+         </Style>
+
+        <!-- This style is used for a letter Group that has no Contact members by the GrayZoomedOutTemplate data template below.-->
+        <Style TargetType="TextBlock" x:Key="TileHeaderTextStyleGray">
+            <Setter Property="FontSize" Value="48" />
+            <Setter Property="Foreground" Value="GhostWhite" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Opacity" Value=".05" />
+        </Style>
+
+        <!-- When using x:Bind, you need to set x:DataType because this binding happens at compile time. Here, 
+             the DataType is the Contact type, enhanced from a Microsoft sample with grouping functions, in Contact.cs.
+             This is the DataTemplate used by the ZoomedInView of the SemanticZoom control, below.-->
+        <DataTemplate x:Name="ContactListViewTemplate" x:DataType="data:Contact">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Ellipse x:Name="Ellipse"
+                         Grid.RowSpan="2"
+                         Width ="32"
+                         Height="32"
+                         Margin="6"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Center"
+                         Fill="SlateGray"/>
+                <TextBlock Grid.Column="1"
+                           Text="{x:Bind Name}" 
+                           x:Phase="1"  
+                           Margin="6,6,0,0"/>
+                <TextBlock  Grid.Column="1"
+                            Grid.Row="1"
+                            Text="{x:Bind Position}" 
+                            TextWrapping="Wrap"
+                            x:Phase="2"
+                            Margin="6,0,0,6"/>
+
+                <TextBlock  Grid.Column="1"
+                            Grid.Row="2"
+                            Text="{x:Bind PhoneNumber}" 
+                            x:Phase="2"
+                            Margin="6,0,0,6"/>
+            </Grid>
+        </DataTemplate>
+        
+        <!-- The GrayZoomedOutTemplate will display a grayed-out letter when a group represented by that letter
+              has no members.  The SemanticZoom control will do nothing when a letter shown by this template is clicked.     -->
+        <DataTemplate x:Key="GrayZoomedOutTemplate" x:DataType="wuxdata:ICollectionViewGroup">
+            <TextBlock Text="{x:Bind Group.(data:GroupInfoList.Key)}" Style="{StaticResource TileHeaderTextStyleGray}" />
+        </DataTemplate>
+        
+        <!-- The ZoomedOutTemplate will display a clickable bold letter when a group represented by that letter
+             has one or more members.  The SemanticZoom control will bring that group into view when clicked.  -->
+        <DataTemplate x:Key="ZoomedOutTemplate" x:DataType="wuxdata:ICollectionViewGroup">
+            <TextBlock Text="{x:Bind Group.(data:GroupInfoList.Key)}" Style="{StaticResource TileHeaderTextStyle}" />
+        </DataTemplate>
+        
+        <!-- The GroupEmptyOrFullSelector is a derived class of the Microsoft DataTemplateSelector class.  This object
+             chooses which DataTemplate to use when displaying Group header items in the ZoomedOutView, below.
+             https://docs.microsoft.com/en-us/uwp/api/Windows.UI.Xaml.Controls.DataTemplateSelector    -->
+        <local:GroupEmptyOrFullSelector x:Key="GroupEmptyOrFullSelector" Empty="{StaticResource GrayZoomedOutTemplate}" Full="{StaticResource ZoomedOutTemplate}" />
+    </UserControl.Resources>
+    
+    
+    <!--#region Navigation Panel -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical">
+            <TextBlock Margin="15,0,0,0" Text="Paula's SemanticZoom Demo" Grid.Row="0"
+                Style="{StaticResource HeaderTextBlockStyle}" VerticalAlignment="Center" />
+
+            <TextBlock Margin="15,20,0,0" Text="Using A Randomly Generated Contact List" Style="{StaticResource SubtitleTextBlockStyle}" />
+
+            <!-- The click event handler for this button toggles the SemanticZoom control's IsZoomedInViewActive property, which 
+                 determines whether the Windows.UI.Xaml.Controls.SemanticZoom.ZoomedInView is the active view on the page.  -->
+            <Button x:Name="ZoomInOutBtn" Content="ABC↕" Click="ZoomInOutBtn_Click" Width="60" HorizontalAlignment="Center" BorderThickness="0" Background="Transparent"/>
+        </StackPanel>
+        <!--#endregion-->
+        
+        <!-- This is  the actual SemanticZoom control.  It has two views, a ZoomedInView, which shows the grouped data with a header on 
+             each Group, and a ZoomedOutView that shows the index to the set of Groups. -->
+        <SemanticZoom x:Name="ZoomControl" Grid.Row="1">
+            
+            <!-- The ZoomedInView, here implemented as a GridView.  You could also use a ListView. -->
+            <SemanticZoom.ZoomedInView>
+                <GridView ItemsSource="{x:Bind ContactsCVS.View}"
+                          ItemTemplate="{StaticResource ContactListViewTemplate}"
+                          SelectionMode="Single"
+                          ShowsScrollingPlaceholders="True">
+
+                    <!--  This the the style for the Group header, which is bound to the Key property of the GroupInfoList 
+                          object. A GroupInfoList is derived from List<T> and has a Key property, the value of which forms the 
+                          Group header title.  In this demo, each letter of the alphabet represents a Group and has its own list of 
+                          Contact objects wherein the LastName property of the Contact starts with the letter of that Group. -->
+                    <GridView.GroupStyle>
+                        <GroupStyle HidesIfEmpty="True">
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate x:DataType="data:GroupInfoList">
+                                    <TextBlock Text="{x:Bind Path=Key}" />
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </GridView.GroupStyle>
+                </GridView>
+            </SemanticZoom.ZoomedInView>
+            
+            <!-- The ZoomedOutView of the SemanticZoom control.  This displays the index to the Groups, held
+                 by the CollectionViewSource declared above as a UserControl resource.  The DataTemplate used to display
+                 each Group header, or Key, is chosen according to the ItemTemplateSelector, in this case, the
+                 GroupEmptyOrFullSelector object, derived from the Microsoft DataTemplateSelector class, implemented
+                 here in EmptyOrFullSelector.cs.  If a Group representing a particular letter has no Contact objects,
+                 the GroupEmptyOrFullSelector will choose the GrayZoomedOutTemplate resource to display its letter. 
+                 The ZoomedOutView is triggered by the user clicking on a Group header, or by toggling the ZoomInOutBtn.
+            
+                 The Width of the enclosing GridView was chosen visually by trial and error to accomodate even Letter rows 
+                 in this demo.  Implementations for different platforms might want to use a VisualStateManager to
+                 choose the width, depending upon which platform and orientations you want to support, but that's beyond
+                 the scope of this simple demo.
+            
+                 You could also use a ListView here.
+            -->
+            <SemanticZoom.ZoomedOutView>
+                <GridView ItemTemplateSelector="{StaticResource GroupEmptyOrFullSelector}" 
+                          ItemsSource="{x:Bind ContactsCVS.View.CollectionGroups}"  HorizontalAlignment="Center" 
+                          ScrollViewer.VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center"   
+                          Width="475" SelectionMode="None" >
+                </GridView>
+            </SemanticZoom.ZoomedOutView>
+        </SemanticZoom>
+    </Grid>
+</UserControl>
