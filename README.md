@@ -10,4 +10,4 @@ learn about the SemanticZoom control at this Microsoft URL:
 https://docs.microsoft.com/en-us/windows/uwp/controls-and-patterns/semantic-zoom
 
 ## GroupInfoList tutorial
-see this web page [here] (../GroupInfoList/Documentation/semanticzoom_web.htm)
+see this web page [here](../GroupInfoList/Documentation/semanticzoom_web.htm)
