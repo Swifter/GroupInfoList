@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
-using Windows.Foundation.Collections;
 using GroupList.Model;
 
 namespace GroupList.GroupList
@@ -86,7 +81,7 @@ namespace GroupList.GroupList
                 }
                 else
                 {
-					// the DataTemplate used to display Contact groups with one or more Contact memebers
+					// the DataTemplate used to display Contact groups with one or more Contact members
                     return Full;
                 }
             }
